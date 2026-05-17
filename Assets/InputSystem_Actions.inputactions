@@ -12,7 +12,7 @@
                     "id": "088d7c0f-0c40-4b8d-8481-96edf3c16655",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "Hold(duration=0.3),Tap(duration=0.2)",
+                    "interactions": "Hold,Tap",
                     "initialStateCheck": false
                 }
             ],
@@ -32,6 +32,17 @@
                     "name": "",
                     "id": "e25c3cb7-4c6f-4ece-9f61-f492f25c0808",
                     "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "OnAction",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "74d938d0-f536-4ca4-a05f-844e74cabaa3",
+                    "path": "<Gamepad>/leftTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
