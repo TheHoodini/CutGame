@@ -12,7 +12,7 @@
                     "id": "088d7c0f-0c40-4b8d-8481-96edf3c16655",
                     "expectedControlType": "",
                     "processors": "",
-                    "interactions": "Hold(duration=0.3),Tap",
+                    "interactions": "Hold(duration=0.3),Tap(duration=0.2)",
                     "initialStateCheck": false
                 }
             ],
