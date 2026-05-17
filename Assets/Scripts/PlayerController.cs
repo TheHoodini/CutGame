@@ -17,7 +17,7 @@ public class PlayerController : MonoBehaviour
             context.performed)
         {
             Debug.Log("Tap");
-                _cuttableObject.CutAtAngle(_cuttableObject.cutAngle * -1);
+                _cuttableObject.CutAtAngle(_cuttableObject.cutAngle);
         }
 
         // HOLD

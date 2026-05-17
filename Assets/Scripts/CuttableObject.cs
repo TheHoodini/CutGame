@@ -12,14 +12,20 @@ public class CuttableObject : MonoBehaviour
     [SerializeField] public float cutAngle = 0f;
 
     [Header("Cut Cap")]
-    [Tooltip("Texture applied to the cut face. Leave blank for white.")]
-    [SerializeField] private Texture2D capTexture;
-    [Tooltip("Optional full material for the cut face. Overrides capTexture.")]
+    //[Tooltip("Texture applied to the cut face. Leave blank for white.")]
+    private Texture2D capTexture;
+    [Tooltip("Material for the cut faces.")]
     [SerializeField] private Material capMaterialOverride;
 
     [Header("Physics")]
     [SerializeField] private bool addRigidbodyOnCut = true;
     [SerializeField] private float separationForce = 2f;
+
+    [Header("Gizmo")]
+    [Tooltip("Show a semi-transparent red rectangle in the Editor visualising where the cut will be.")]
+    [SerializeField] private bool showCutGizmo = false;
+    [Tooltip("Half-size of the gizmo rectangle in world units. Increase for large objects.")]
+    [SerializeField] private float gizmoSize = 2f;
 
     private bool _isCutPiece; // block cut if already cut
 
@@ -37,44 +43,25 @@ public class CuttableObject : MonoBehaviour
     // ─── Public Cut ───────────────────────────────────────────────────────────
 
     /// Trigger a cut at the given world-space angle (degrees, clockwise from horizontal).
-    /// The plane always passes through the combined world-space centroid of all
-    /// child MeshRenderers, so the cut bisects the visual centre of the model.
+    /// The plane passes through this object's root position (transform.position).
+    /// 0° = horizontal, 90° = vertical, 45° = diagonal upper-left→lower-right.
     public void CutAtAngle(float angleDeg)
     {
         if (_isCutPiece) return;
-        // ── Angle → plane normal ──────────────────────────────────────────────
-        // 0° is horizontal: normal = world up = (0, 1, 0).
-        //   normal = ( sin(rad), cos(rad), 0 )
-        //   0°   → (0,  1, 0) → horizontal cut
-        //   90°  → (1,  0, 0) → vertical cut
-        //   45°  → (0.707, 0.707, 0) → diagonal
-        //   135° → (0.707, -0.707, 0) → opposite diagonal
         float rad = angleDeg * Mathf.Deg2Rad;
         Vector3 planeNormal = new Vector3(Mathf.Sin(rad), Mathf.Cos(rad), 0f);
         Vector3 capUVNormal = new Vector3(Mathf.Cos(rad), -Mathf.Sin(rad), 0f);
-
-        // ── Plane origin: combined centroid of all child renderers ────────────
-        // Using transform.position would anchor the plane to the pivot, which
-        // may not be the visual centre of the model (common with FBX imports).
-        // Instead we compute the world-space centre of all MeshRenderer bounds.
-        Vector3 centroid = ComputeHierarchyCentroid();
-
-        Plane worldPlane = new Plane(planeNormal, centroid);
+        Plane worldPlane = new Plane(planeNormal, transform.position);
         Cut(worldPlane, capUVNormal);
     }
 
-    /// Returns the world-space centre of the combined AABB of every MeshRenderer
-    /// in the hierarchy. Falls back to transform.position if none are found.
-    private Vector3 ComputeHierarchyCentroid()
+    /// Returns the plane normal and a point on the plane for the current cutAngle,
+    /// anchored at the root's world position. Used by both CutAtAngle and OnDrawGizmos.
+    private (Vector3 normal, Vector3 origin) GetCutPlaneInfo(float angleDeg)
     {
-        MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>(includeInactive: true);
-        if (renderers.Length == 0) return transform.position;
-
-        Bounds combined = renderers[0].bounds;
-        for (int i = 1; i < renderers.Length; i++)
-            combined.Encapsulate(renderers[i].bounds);
-
-        return combined.center;
+        float rad = angleDeg * Mathf.Deg2Rad;
+        Vector3 normal = new Vector3(Mathf.Sin(rad), Mathf.Cos(rad), 0f);
+        return (normal, transform.position);
     }
 
     /// Perform a cut with an explicit world-space plane.
@@ -589,4 +576,59 @@ public class CuttableObject : MonoBehaviour
             return m;
         }
     }
+
+    // ─── Editor Gizmo ────────────────────────────────────────────────────────
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (!showCutGizmo) return;
+
+        var (normal, origin) = GetCutPlaneInfo(cutAngle);
+
+        // Build two axes that lie ON the cut plane.
+        // axisA sits in the XY plane (the cut direction tangent).
+        // axisB always points along world Z so the rectangle faces the camera.
+        Vector3 axisA = new Vector3(normal.y, -normal.x, 0f).normalized; // 90° CCW of normal in XY
+        Vector3 axisB = Vector3.forward;
+
+        float zDepth = 0.5f;
+
+        // Four corners of the gizmo rectangle
+        Vector3 c0 = origin + axisA * gizmoSize + axisB * zDepth;
+        Vector3 c1 = origin + axisA * -gizmoSize + axisB * zDepth;
+        Vector3 c2 = origin + axisA * -gizmoSize + axisB * -zDepth;
+        Vector3 c3 = origin + axisA * gizmoSize + axisB * -zDepth;
+
+        // Semi-transparent fill
+        Gizmos.color = new Color(1f, 0.15f, 0.15f, 0.25f);
+        // Unity Gizmos has no built-in quad, so we draw two triangles
+        Gizmos.DrawLine(c0, c1); // draw outline first (will be overdrawn by solid tris)
+        UnityEditor.Handles.color = new Color(1f, 0.15f, 0.15f, 0.25f);
+        UnityEditor.Handles.DrawAAConvexPolygon(c0, c1, c2, c3);
+
+        // Solid outline
+        Gizmos.color = new Color(1f, 0.1f, 0.1f, 0.9f);
+        Gizmos.DrawLine(c0, c1);
+        Gizmos.DrawLine(c1, c2);
+        Gizmos.DrawLine(c2, c3);
+        Gizmos.DrawLine(c3, c0);
+
+        // Centre cross to mark the plane origin
+        float cross = gizmoSize * 0.08f;
+        Gizmos.DrawLine(origin - axisA * cross, origin + axisA * cross);
+        Gizmos.DrawLine(origin - axisB * cross, origin + axisB * cross);
+
+        //  arrow 
+        /*
+        UnityEditor.Handles.color = new Color(1f, 0.5f, 0.1f, 0.9f);
+        UnityEditor.Handles.ArrowHandleCap(
+            0,
+            origin,
+            Quaternion.LookRotation(normal),
+            gizmoSize * 0.35f,
+            EventType.Repaint);
+        */
+    }
+#endif
 }
