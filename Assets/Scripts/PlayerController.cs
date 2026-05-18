@@ -93,8 +93,37 @@ public class PlayerController : MonoBehaviour
         }
 
         Debug.Log("Tap");
-        float angle = Math.Abs(_cutIndicator.transform.rotation.eulerAngles.z) * -1;
-        _objectSpawner.CurrentObject.CutAtAngle(angle);
+        int indicatorAngle = GetRightAngle(_cutIndicator.transform.localEulerAngles.z);
+
+        // Make cut
+        bool isAngleEqual = indicatorAngle == (int)_objectSpawner.CurrentObject.CutAngle;
+        _objectSpawner.CurrentObject.CutAtAngle(indicatorAngle, isAngleEqual);
         _objectSpawner.OnItemCut();
+    }
+
+    private int GetRightAngle(float angle)
+    {
+        angle %= 360;
+        if (angle > 180) angle -= 360;
+
+        int intAngle = Mathf.RoundToInt(angle);
+
+        switch (intAngle)
+        {
+            case 0 or -180:
+                intAngle = 0;
+                break;
+            case -45 or 135:
+                intAngle = 45;
+                break;
+            case -90 or 90:
+                intAngle = 90;
+                break;
+            case -135 or 45:
+                intAngle = 135;
+                break;
+        }
+
+        return intAngle;
     }
 }

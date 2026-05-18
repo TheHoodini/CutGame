@@ -46,17 +46,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CuttableObject
   cutAnglePreset: 0
-  capTexture: {fileID: 0}
   capMaterialOverride: {fileID: 2100000, guid: bdcd94f685c5f31478e0e9f268b64e87, type: 2}
   addRigidbodyOnCut: 1
-  separationForce: 8
+  separationForce: 6
+  strongerSeparationForce: 16
   despawnDelay: 2
   fadeDuration: 1
-  semiTransparentOnCut: 0
-  initialAlpha: 0.5
   cutSoundEffect: {fileID: 0}
   cutParticlesPrefab: {fileID: 0}
-  showCutGizmo: 0
+  showCutGizmo: 1
   gizmoSize: 2
 --- !u!1 &3407895525381169122
 GameObject:

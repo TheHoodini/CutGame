@@ -101,14 +101,14 @@ public class ObjectSpawner : MonoBehaviour
         Vector3 destination = transform.position;
         Vector3 spawnPoint = transform.position + Vector3.up * _spawnYOffset;
 
-        // Destination point (green)
+        // Destination point 
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(destination, 0.3f);
         UnityEditor.Handles.color = Color.green;
-        UnityEditor.Handles.Label(destination + Vector3.right * 0.4f, "Destination");
+        UnityEditor.Handles.Label(destination + Vector3.right * 0.4f, "Stop");
 
-        // Spawn point (red)
-        Gizmos.color = Color.red;
+        // Spawn point 
+        Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(spawnPoint, 0.3f);
         UnityEditor.Handles.color = Color.red;
         UnityEditor.Handles.Label(spawnPoint + Vector3.right * 0.4f, "Spawn");

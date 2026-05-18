@@ -14,35 +14,33 @@ public enum CutAnglePreset
     // ─── Inspector ────────────────────────────────────────────────────────────
     [Header("Cut Settings")]
     [Tooltip("Direction of the cut.\n" +
-             "Horizontal_0  = left ↔ right\n" +
-             "Diagonal_45   = upper-left → lower-right\n" +
-             "Vertical_90   = top ↕ bottom\n" +
-             "Diagonal_135  = upper-right → lower-left")]
+             "Horizontal_0  = left - right\n" +
+             "Diagonal_45   = upper-left -> lower-right\n" +
+             "Vertical_90   = top - bottom\n" +
+             "Diagonal_135  = upper-right -> lower-left")]
     [SerializeField] private CutAnglePreset cutAnglePreset = CutAnglePreset.Horizontal_0;
 
     /// <summary>The selected cut angle in degrees, read by CutAtAngle and the gizmo.</summary>
-    public float cutAngle => (float)cutAnglePreset;
+    public float CutAngle => (float)cutAnglePreset;
 
     [Header("Cut Cap")]
     [Tooltip("Texture applied to the cut face. Leave blank for white.")]
-    [SerializeField] private Texture2D capTexture;
+    private Texture2D capTexture;
     [Tooltip("Optional full material for the cut face. Overrides capTexture.")]
     [SerializeField] private Material capMaterialOverride;
 
     [Header("Physics")]
     [SerializeField] private bool addRigidbodyOnCut = true;
     [SerializeField] private float separationForce = 2f;
+    [SerializeField] private float strongerSeparationForce = 16f; 
 
     [Header("Fade & Despawn")]
     [Tooltip("Seconds before the cut pieces start fading out. 0 = no delay.")]
     [SerializeField] private float despawnDelay = 2f;
     [Tooltip("How long the fade-out lasts in seconds. 0 = despawn instantly.")]
     [SerializeField] private float fadeDuration = 1f;
-    [Tooltip("Make pieces semi-transparent immediately after the cut (before fading).")]
-    [SerializeField] private bool semiTransparentOnCut = false;
-    [Tooltip("Opacity of the pieces right after the cut (1 = opaque, 0 = invisible).")]
-    [Range(0f, 1f)]
-    [SerializeField] private float initialAlpha = 0.5f;
+    private bool semiTransparentOnCut = true;
+    private float initialAlpha = 0.6f;
 
     [Header("Effects")]
     [Tooltip("(Optional) Sound played at the cut position when the object is cut.")]
@@ -74,7 +72,7 @@ public enum CutAnglePreset
     /// Trigger a cut at the given world-space angle (degrees, clockwise from horizontal).
     /// The plane always passes through the combined world-space centroid of all
     /// child MeshRenderers, so the cut bisects the visual centre of the model.
-    public void CutAtAngle(float angleDeg)
+    public void CutAtAngle(float angleDeg, bool isCutRight = false)
     {
         if (_isCutPiece) return;
         // ── Angle → plane normal ──────────────────────────────────────────────
@@ -95,7 +93,7 @@ public enum CutAnglePreset
         Vector3 centroid = ComputeHierarchyCentroid();
 
         Plane worldPlane = new Plane(planeNormal, centroid);
-        Cut(worldPlane, capUVNormal);
+        Cut(worldPlane, capUVNormal, isCutRight);
     }
 
     /// Returns the world-space centre of the combined AABB of every MeshRenderer
@@ -113,7 +111,7 @@ public enum CutAnglePreset
     }
 
     /// Perform a cut with an explicit world-space plane.
-    public void Cut(Plane worldPlane, Vector3 capUVNormal)
+    public void Cut(Plane worldPlane, Vector3 capUVNormal, bool isCutRight = false)
     {
         // Collect every MeshFilter in this hierarchy (children + self)
         MeshFilter[] allFilters = GetComponentsInChildren<MeshFilter>(includeInactive: true);
@@ -183,10 +181,11 @@ public enum CutAnglePreset
         if (!anyB) Destroy(rootB);
 
         // Add physics separation after all children are attached
+        float trueSeparationForce = isCutRight ? strongerSeparationForce : separationForce;
         if (addRigidbodyOnCut)
         {
-            if (anyA) ApplySeparation(rootA, worldPlane.normal, separationForce);
-            if (anyB) ApplySeparation(rootB, -worldPlane.normal, separationForce);
+            if (anyA) ApplySeparation(rootA, worldPlane.normal, trueSeparationForce);
+            if (anyB) ApplySeparation(rootB, -worldPlane.normal, trueSeparationForce, false);
         }
 
         // Mark spawned pieces so they don't re-trigger on their own
@@ -296,13 +295,15 @@ public enum CutAnglePreset
         }
     }
 
-    private void ApplySeparation(GameObject root, Vector3 direction, float force)
+    private void ApplySeparation(GameObject root, Vector3 direction, float force, bool isDirectionRandom = true)
     {
         // Collect all colliders; if any child is non-convex we cannot add a Rigidbody
         // to that child's GameObject, but we CAN add one to the root (which has no collider).
         // The root Rigidbody will move all children together.
         Rigidbody rb = root.AddComponent<Rigidbody>();
-        rb.AddForce(direction.normalized * force, ForceMode.Impulse);
+        Vector3 randomDirection = Random.onUnitSphere;
+        Vector3 flyDirection = isDirectionRandom ? randomDirection : direction.normalized;
+        rb.AddForce(flyDirection * force, ForceMode.Impulse);
     }
 
     /// <summary>
@@ -742,7 +743,7 @@ public enum CutAnglePreset
     {
         if (!showCutGizmo) return;
 
-        var (normal, origin) = GetCutPlaneInfo(cutAngle);
+        var (normal, origin) = GetCutPlaneInfo(CutAngle);
 
         // axisA: cut line direction (90° CCW of plane normal in XY)
         // axisB: world Z so the rect is always visible in the scene view
