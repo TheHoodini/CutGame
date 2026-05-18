@@ -3,14 +3,16 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Interactions;
 
+//[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private CuttableObject _cuttableObject;
     [SerializeField] private float _rotationInterval = 0.2f;
-    
-    private float _holdActivationDelay = 0.25f; 
-    private CharacterController _characterController;
+
+    private ObjectSpawner _objectSpawner;
     private CutIndicator _cutIndicator;
+    private CharacterController _characterController;
+
+    private float _holdActivationDelay = 0.25f;
     private bool _isHolding = false;
     private bool _isTap = false;
     private float _rotationTimer = 0f;
@@ -19,6 +21,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        _objectSpawner = FindFirstObjectByType<ObjectSpawner>();
         _cutIndicator = FindFirstObjectByType<CutIndicator>();
         _characterController = GetComponent<CharacterController>();
     }
@@ -33,7 +36,7 @@ public class PlayerController : MonoBehaviour
             if (_holdDelayTimer >= _holdActivationDelay)
             {
                 _holdConfirmed = true;
-                _rotationTimer = _rotationInterval; 
+                _rotationTimer = _rotationInterval;
             }
             return;
         }
@@ -56,8 +59,7 @@ public class PlayerController : MonoBehaviour
 
             if (context.performed && _isTap)
             {
-                Debug.Log("Tap");
-                _cuttableObject.CutAtAngle(Math.Abs(_cutIndicator.transform.rotation.eulerAngles.z) * -1);
+                TryCut();
                 _isTap = false;
             }
         }
@@ -70,7 +72,6 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("Holding");
                 _isHolding = true;
                 _holdConfirmed = false;
-                
             }
             else if (context.canceled)
             {
@@ -81,5 +82,19 @@ public class PlayerController : MonoBehaviour
             _holdDelayTimer = 0f;
             _rotationTimer = 0f;
         }
+    }
+
+    private void TryCut()
+    {
+        if (_objectSpawner.IsRespawning || _objectSpawner.CurrentObject == null)
+        {
+            Debug.Log("Can't be cut");
+            return;
+        }
+
+        Debug.Log("Tap");
+        float angle = Math.Abs(_cutIndicator.transform.rotation.eulerAngles.z) * -1;
+        _objectSpawner.CurrentObject.CutAtAngle(angle);
+        _objectSpawner.OnItemCut();
     }
 }
