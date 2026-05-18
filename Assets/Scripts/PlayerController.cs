@@ -86,7 +86,7 @@ public class PlayerController : MonoBehaviour
 
     private void TryCut()
     {
-        if (_objectSpawner.IsRespawning || _objectSpawner.CurrentObject == null)
+        if (!_objectSpawner.CanCut)
         {
             Debug.Log("Can't be cut");
             return;

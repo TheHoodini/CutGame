@@ -4,14 +4,13 @@ using UnityEngine;
 public class CuttableObject : MonoBehaviour
 {
     // ─── Angle enum ───────────────────────────────────────────────────────────
-    public enum CutAnglePreset
-    {
-        Horizontal_0 = 0,
-        Diagonal_45 = 45,
-        Vertical_90 = 90,
-        Diagonal_135 = 135
-    }
-
+public enum CutAnglePreset
+{
+    Horizontal_0 = 0,
+    Diagonal_45 = 45,
+    Vertical_90 = 90,
+    Diagonal_135 = 135
+}
     // ─── Inspector ────────────────────────────────────────────────────────────
     [Header("Cut Settings")]
     [Tooltip("Direction of the cut.\n" +
@@ -33,6 +32,17 @@ public class CuttableObject : MonoBehaviour
     [Header("Physics")]
     [SerializeField] private bool addRigidbodyOnCut = true;
     [SerializeField] private float separationForce = 2f;
+
+    [Header("Fade & Despawn")]
+    [Tooltip("Seconds before the cut pieces start fading out. 0 = no delay.")]
+    [SerializeField] private float despawnDelay = 2f;
+    [Tooltip("How long the fade-out lasts in seconds. 0 = despawn instantly.")]
+    [SerializeField] private float fadeDuration = 1f;
+    [Tooltip("Make pieces semi-transparent immediately after the cut (before fading).")]
+    [SerializeField] private bool semiTransparentOnCut = false;
+    [Tooltip("Opacity of the pieces right after the cut (1 = opaque, 0 = invisible).")]
+    [Range(0f, 1f)]
+    [SerializeField] private float initialAlpha = 0.5f;
 
     [Header("Effects")]
     [Tooltip("(Optional) Sound played at the cut position when the object is cut.")]
@@ -183,28 +193,7 @@ public class CuttableObject : MonoBehaviour
         if (anyA) SetupResultPiece(rootA);
         if (anyB) SetupResultPiece(rootB);
 
-        // ── Spawn effects at the cut origin ──────────────────────────────────
-        PlayCutEffects();
-
         Destroy(gameObject);
-    }
-
-    // ─── Effects ──────────────────────────────────────────────────────────────
-
-    private void PlayCutEffects()
-    {
-        Vector3 origin = transform.position;
-
-        if (cutSoundEffect != null)
-            AudioSource.PlayClipAtPoint(cutSoundEffect, origin);
-
-        if (cutParticlesPrefab != null)
-        {
-            ParticleSystem ps = Instantiate(cutParticlesPrefab, origin, Quaternion.identity);
-            // Auto-destroy the particle GameObject once the effect finishes
-            if (!ps.main.loop)
-                Destroy(ps.gameObject, ps.main.duration + ps.main.startLifetime.constantMax);
-        }
     }
 
     // ─── Result root helpers ──────────────────────────────────────────────────
@@ -331,6 +320,106 @@ public class CuttableObject : MonoBehaviour
         ci.separationForce = separationForce;
         ci.cutSoundEffect = cutSoundEffect;
         ci.cutParticlesPrefab = cutParticlesPrefab;
+        ci.despawnDelay = despawnDelay;
+        ci.fadeDuration = fadeDuration;
+        ci.semiTransparentOnCut = semiTransparentOnCut;
+        ci.initialAlpha = initialAlpha;
+
+        ci.StartFadeAndDespawn();
+    }
+
+    // ─── Fade & despawn ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Kicks off the fade-out and auto-destroy sequence on a spawned piece.
+    /// </summary>
+    public void StartFadeAndDespawn()
+    {
+        StartCoroutine(FadeAndDespawnRoutine());
+    }
+
+    private System.Collections.IEnumerator FadeAndDespawnRoutine()
+    {
+        MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>(true);
+
+        // Switch every material to a transparent-capable render mode
+        foreach (var rend in renderers)
+            foreach (var mat in rend.materials)
+                SetMaterialTransparent(mat);
+
+        // Optional immediate semi-transparency
+        float startAlpha = semiTransparentOnCut ? initialAlpha : 1f;
+        SetAllAlpha(renderers, startAlpha);
+
+        // Wait before fading
+        if (despawnDelay > 0f)
+            yield return new WaitForSeconds(despawnDelay);
+
+        // Fade out over fadeDuration seconds
+        if (fadeDuration > 0f)
+        {
+            float elapsed = 0f;
+            while (elapsed < fadeDuration)
+            {
+                elapsed += Time.deltaTime;
+                SetAllAlpha(renderers, Mathf.Lerp(startAlpha, 0f, elapsed / fadeDuration));
+                yield return null;
+            }
+        }
+
+        Destroy(gameObject);
+    }
+
+    /// <summary>
+    /// Switches a material into Transparent mode (Built-in Standard or URP Lit).
+    /// </summary>
+    private static void SetMaterialTransparent(Material mat)
+    {
+        if (mat.HasProperty("_Mode"))       // Built-in Standard
+        {
+            mat.SetFloat("_Mode", 3f);
+            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.SetInt("_ZWrite", 0);
+            mat.EnableKeyword("_ALPHABLEND_ON");
+            mat.DisableKeyword("_ALPHATEST_ON");
+            mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+            mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+        }
+        else if (mat.HasProperty("_Surface"))  // URP Lit
+        {
+            mat.SetFloat("_Surface", 1f);   // 0 = Opaque, 1 = Transparent
+            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.SetInt("_ZWrite", 0);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+        }
+    }
+
+    /// <summary>
+    /// Sets the alpha on every material's _Color (Built-in) or _BaseColor (URP) property.
+    /// </summary>
+    private static void SetAllAlpha(MeshRenderer[] renderers, float alpha)
+    {
+        foreach (var rend in renderers)
+        {
+            foreach (var mat in rend.materials)
+            {
+                if (mat.HasProperty("_BaseColor"))      // URP
+                {
+                    Color c = mat.GetColor("_BaseColor");
+                    c.a = alpha;
+                    mat.SetColor("_BaseColor", c);
+                }
+                else if (mat.HasProperty("_Color"))     // Built-in
+                {
+                    Color c = mat.GetColor("_Color");
+                    c.a = alpha;
+                    mat.SetColor("_Color", c);
+                }
+            }
+        }
     }
 
     // ─── Mesh slicing ─────────────────────────────────────────────────────────
