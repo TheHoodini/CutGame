@@ -185,7 +185,7 @@ public enum CutAnglePreset
         if (addRigidbodyOnCut)
         {
             if (anyA) ApplySeparation(rootA, worldPlane.normal, trueSeparationForce);
-            if (anyB) ApplySeparation(rootB, -worldPlane.normal, trueSeparationForce, false);
+            if (anyB) ApplySeparation(rootB, -worldPlane.normal, trueSeparationForce);
         }
 
         // Mark spawned pieces so they don't re-trigger on their own

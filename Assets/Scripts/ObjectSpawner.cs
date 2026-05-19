@@ -22,6 +22,13 @@ public class ObjectSpawner : MonoBehaviour
     private Vector3 SpawnPosition => transform.position + Vector3.up * _spawnYOffset;
     private Vector3 DestinationPosition => transform.position;
 
+    private UIMgr _uiMgr;
+
+    public void Awake()
+    {
+        _uiMgr = FindFirstObjectByType<UIMgr>();
+    }
+
     private void Start()
     {
         SpawnObject();
@@ -54,6 +61,7 @@ public class ObjectSpawner : MonoBehaviour
     public void OnItemCut()
     {
         _currentObject = null;
+        _uiMgr.HideCutIcon();
 
         if (_respawnDelay > 0)
             StartCoroutine(DelayAndRespawn());
@@ -85,6 +93,7 @@ public class ObjectSpawner : MonoBehaviour
             obj.transform.position = end;
 
         _isSliding = false;
+        _uiMgr.ShowCutIcon((int)_currentObject.CutAngle);
     }
 
     private IEnumerator DelayAndRespawn()
