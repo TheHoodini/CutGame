@@ -14,6 +14,15 @@
                     "processors": "",
                     "interactions": "Hold,Tap",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "OnReset",
+                    "type": "Button",
+                    "id": "abc2266b-4e45-4ced-a342-8e313a76b72c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -47,6 +56,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "OnAction",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "e1d9d4ff-4356-4937-aa85-80b7c80236c8",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "OnReset",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

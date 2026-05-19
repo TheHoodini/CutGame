@@ -6,9 +6,27 @@ public class ObjectSpawner : MonoBehaviour
 {
     [SerializeField] private List<GameObject> _cuttableObjPrefabs;
     [Header("Spawn Settings")]
-    [SerializeField] private float _respawnDelay = 2f;
     [SerializeField] private float _spawnYOffset = 5f;
+    [SerializeField] private float _respawnDelay = 2f;
     [SerializeField] private float _slideDownDuration = 0.8f;
+
+    public float RespawnDelay
+    {
+        get => _respawnDelay; 
+        set => _respawnDelay = value;
+    }
+
+    public float SpawnYOffset
+    {
+        get => _spawnYOffset; 
+        set => _spawnYOffset = value;
+    }
+
+    public float SpawnDelay
+    {
+        get => _slideDownDuration; 
+        set => _slideDownDuration = value;
+    }
 
     private CuttableObject _currentObject;
     private bool _isRespawning = false;
@@ -22,16 +40,9 @@ public class ObjectSpawner : MonoBehaviour
     private Vector3 SpawnPosition => transform.position + Vector3.up * _spawnYOffset;
     private Vector3 DestinationPosition => transform.position;
 
-    private UIMgr _uiMgr;
-
-    public void Awake()
-    {
-        _uiMgr = FindFirstObjectByType<UIMgr>();
-    }
-
     private void Start()
     {
-        SpawnObject();
+        //SpawnObject();
     }
 
     public void SpawnObject()
@@ -61,7 +72,7 @@ public class ObjectSpawner : MonoBehaviour
     public void OnItemCut()
     {
         _currentObject = null;
-        _uiMgr.HideCutIcon();
+        UIMgr.Instance.HideCutIcon();
 
         if (_respawnDelay > 0)
             StartCoroutine(DelayAndRespawn());
@@ -93,7 +104,7 @@ public class ObjectSpawner : MonoBehaviour
             obj.transform.position = end;
 
         _isSliding = false;
-        _uiMgr.ShowCutIcon((int)_currentObject.CutAngle);
+        UIMgr.Instance.ShowCutIcon((int)_currentObject.CutAngle);
     }
 
     private IEnumerator DelayAndRespawn()

@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     private ObjectSpawner _objectSpawner;
     private CutIndicator _cutIndicator;
     private CharacterController _characterController;
+    private Shake _cameraShake;
 
     private float _holdActivationDelay = 0.25f;
     private bool _isHolding = false;
@@ -21,6 +22,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        _cameraShake = Camera.main.GetComponent<Shake>();
         _objectSpawner = FindFirstObjectByType<ObjectSpawner>();
         _cutIndicator = FindFirstObjectByType<CutIndicator>();
         _characterController = GetComponent<CharacterController>();
@@ -46,6 +48,14 @@ public class PlayerController : MonoBehaviour
         {
             _cutIndicator.Rotate();
             _rotationTimer = 0f;
+        }
+    }
+
+    public void OnReset(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            GameMgr.Instance.ResetScene();
         }
     }
 
@@ -98,6 +108,8 @@ public class PlayerController : MonoBehaviour
         // Make cut
         bool isAngleEqual = indicatorAngle == (int)_objectSpawner.CurrentObject.CutAngle;
         _objectSpawner.CurrentObject.CutAtAngle(indicatorAngle, isAngleEqual);
+        if (!isAngleEqual) _cameraShake.StartShake();
+        if (isAngleEqual) GameMgr.Instance.AddScore();
         _objectSpawner.OnItemCut();
     }
 
@@ -110,7 +122,7 @@ public class PlayerController : MonoBehaviour
 
         switch (intAngle)
         {
-            case 0 or -180:
+            case 0 or 180:
                 intAngle = 0;
                 break;
             case -45 or 135:
