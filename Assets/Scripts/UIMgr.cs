@@ -21,6 +21,10 @@ public class UIMgr : MonoBehaviour
     [SerializeField] private Sprite _iconHorizontal;
     [SerializeField] private Sprite _iconDiagonal45;
     [SerializeField] private Sprite _iconDiagonal135;
+    [Header("Results UI")]
+    [SerializeField] private TextMeshProUGUI _finalScore;
+    [SerializeField] private TextMeshProUGUI _highscore;
+    [SerializeField] private TextMeshProUGUI _newRecordLabel;
 
     private void Awake()
     {
@@ -43,6 +47,9 @@ public class UIMgr : MonoBehaviour
 
     public IEnumerator StartCountdown()
     {
+        _gameplayScreen.SetActive(true);
+        _resultsScreen.SetActive(false);
+
         _startCount.gameObject.SetActive(true);
         _startCount.text = "3";
         yield return new WaitForSeconds(1f);
@@ -53,6 +60,15 @@ public class UIMgr : MonoBehaviour
         _startCount.text = "GO!";
         yield return new WaitForSeconds(1f);
         _startCount.gameObject.SetActive(false);
+    }
+
+    public void SetTimer(float duration)
+    {
+        int minutes = Mathf.FloorToInt(duration / 60);
+        float remSeconds = duration % 60;
+        string formatted = string.Format("{0}:{1:00.00}", minutes, remSeconds);
+
+        _timer.text = formatted;
     }
 
     public IEnumerator StartTimer(float duration)
@@ -70,6 +86,7 @@ public class UIMgr : MonoBehaviour
             yield return null;
         }
         _timer.text = "0:00.00";
+        GameMgr.Instance.EndGame();
     }
 
     public void UpdateScore(int score)
@@ -105,9 +122,14 @@ public class UIMgr : MonoBehaviour
         _cutIcon.gameObject.SetActive(true);
     }
 
-    public void ShowResultsScreen(int finalScore)
+    public void ShowResultsScreen(int finalScore, int highscore, bool isHighscoreNew)
     {
         _gameplayScreen.SetActive(false);
+
+        _finalScore.text = $"SCORE: {finalScore}";
+        _highscore.text = $"HIGHSCORE: {highscore}";
+        _newRecordLabel.gameObject.SetActive(isHighscoreNew);
+
         _resultsScreen.SetActive(true);
     }
 }

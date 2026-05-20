@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CuttableObject
   cutAnglePreset: 90
-  capMaterialOverride: {fileID: 2100000, guid: a1167d94a567d7f449088cbd2fb2416a, type: 2}
+  capMaterialOverride: {fileID: 2100000, guid: b8a9f811828fce4409ee6257323c1a46, type: 2}
   addRigidbodyOnCut: 1
   separationForce: 6
   strongerSeparationForce: 16
@@ -64,10 +64,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 734597381474036734}
     m_Modifications:
-    - target: {fileID: -7511558181221131132, guid: bffa170425f21794489509662dba8894, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 3bcd3d9655091a747ae8e2ef35a259d5, type: 2}
     - target: {fileID: -8679921383154817045, guid: 1abe6d398181d154296e222465038762, type: 3}
       propertyPath: m_LocalScale.x
       value: 400
@@ -132,6 +128,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Banana 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: bffa170425f21794489509662dba8894, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3bcd3d9655091a747ae8e2ef35a259d5, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

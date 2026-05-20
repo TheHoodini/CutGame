@@ -61,6 +61,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnAction(InputAction.CallbackContext context)
     {
+        if (!GameMgr.Instance.IsPlaying) return;
         // TAP
         if (context.interaction is TapInteraction)
         {

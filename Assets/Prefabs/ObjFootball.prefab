@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CuttableObject
   cutAnglePreset: 45
-  capMaterialOverride: {fileID: 2100000, guid: a1167d94a567d7f449088cbd2fb2416a, type: 2}
+  capMaterialOverride: {fileID: 2100000, guid: b8a9f811828fce4409ee6257323c1a46, type: 2}
   addRigidbodyOnCut: 1
   separationForce: 2
   strongerSeparationForce: 9
