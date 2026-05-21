@@ -1,7 +1,8 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System.Collections;
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class UIMgr : MonoBehaviour
 {
@@ -25,6 +26,7 @@ public class UIMgr : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _finalScore;
     [SerializeField] private TextMeshProUGUI _highscore;
     [SerializeField] private TextMeshProUGUI _newRecordLabel;
+    [SerializeField] private Image _imageFill;
 
     private void Awake()
     {
@@ -131,5 +133,33 @@ public class UIMgr : MonoBehaviour
         _newRecordLabel.gameObject.SetActive(isHighscoreNew);
 
         _resultsScreen.SetActive(true);
+    }
+
+    public void AddImageFill()
+    {
+        float fillAmount = 0.7f;
+        _imageFill.fillAmount += fillAmount * Time.deltaTime;
+        _imageFill.fillAmount = Mathf.Clamp01(_imageFill.fillAmount);
+
+        if (_imageFill.fillAmount >= 1)
+        {
+            Application.Quit();
+
+            // If running in the editor
+            #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+            #endif
+        }
+    }
+
+    public void ResetImageFill()
+    {
+        _imageFill.fillAmount = 0 ;
+    }
+
+    public void OnAction(InputAction.CallbackContext context)
+    {
+        if (GameMgr.Instance.IsPlaying) return;
+        if (context.started) Debug.Log("uimgr input");
     }
 }

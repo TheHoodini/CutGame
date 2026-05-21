@@ -43,6 +43,9 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (_isHolding && !GameMgr.Instance.IsPlaying) UIMgr.Instance.AddImageFill();
+
+        if (!GameMgr.Instance.IsPlaying) return;
         _rotationTimer += Time.deltaTime;
         if (_rotationTimer >= _rotationInterval)
         {
@@ -61,17 +64,23 @@ public class PlayerController : MonoBehaviour
 
     public void OnAction(InputAction.CallbackContext context)
     {
-        if (!GameMgr.Instance.IsPlaying) return;
+        //if (!GameMgr.Instance.IsPlaying) return;
         // TAP
         if (context.interaction is TapInteraction)
         {
-            if (context.started)
+            if (GameMgr.Instance.IsPlaying) { // isPlaying -------
+                if (context.started)
                 _isTap = true;
 
-            if (context.performed && _isTap)
+                if (context.performed && _isTap)
+                {
+                    TryCut();
+                    _isTap = false;
+                }
+            }
+            else // is not Playing -------
             {
-                TryCut();
-                _isTap = false;
+                GameMgr.Instance.ResetScene();
             }
         }
 
@@ -89,6 +98,8 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("Hold Ended");
                 _isHolding = false;
                 _holdConfirmed = false;
+                UIMgr.Instance.ResetImageFill();
+
             }
             _holdDelayTimer = 0f;
             _rotationTimer = 0f;

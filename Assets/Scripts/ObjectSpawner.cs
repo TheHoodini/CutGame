@@ -115,6 +115,11 @@ public class ObjectSpawner : MonoBehaviour
         SpawnObject();
     }
 
+    public void GetFaster()
+    {
+
+    }
+
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
