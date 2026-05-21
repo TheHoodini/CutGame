@@ -9,11 +9,13 @@ public class ObjectSpawner : MonoBehaviour
     [SerializeField] private float _spawnYOffset = 5f;
     [SerializeField] private float _respawnDelay = 2f;
     [SerializeField] private float _slideDownDuration = 0.8f;
+    private int _speedLevel = 0;
 
     private CuttableObject _currentObject;
     private bool _isRespawning = false;
     private bool _isSliding = false;
 
+    public int SpeedLevel => _speedLevel;
     public CuttableObject CurrentObject => _currentObject;
     public bool IsRespawning => _isRespawning;
     public bool IsSliding => _isSliding;
@@ -97,8 +99,9 @@ public class ObjectSpawner : MonoBehaviour
         SpawnObject();
     }
 
-    public void GetFaster(float respawn, float slide)
+    public void GetFaster(float respawn, float slide, int speedLevel)
     {
+        _speedLevel = speedLevel;
         _respawnDelay = respawn;
         _slideDownDuration = slide;
     }

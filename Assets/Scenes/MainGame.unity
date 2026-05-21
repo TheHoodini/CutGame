@@ -1397,7 +1397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebc397ef4d06c42408c546bb9339cc2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameMgr
-  _gameDuration: 60
+  _gameDuration: 90
 --- !u!4 &2022190716
 Transform:
   m_ObjectHideFlags: 0

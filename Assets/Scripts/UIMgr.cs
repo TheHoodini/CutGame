@@ -88,17 +88,19 @@ public class UIMgr : MonoBehaviour
             _timer.text = $"{minutes}:{seconds:00}.{centiseconds:00}";
             elapsed += Time.deltaTime;
 
-            if (Mathf.RoundToInt(remaining) == (duration/2)) 
+            if ((remaining < duration * (2f / 3)) && _objectSpawner.SpeedLevel < 1) 
             { 
-                _objectSpawner.GetFaster(0.9f, 0.5f);
-                Debug.Log("faster 30%");
+                _objectSpawner.GetFaster(0.9f, 0.5f, 1);
+                _timer.color = Color.yellow;
+                Debug.Log("faster 1");
             }
-            if (Mathf.RoundToInt(remaining) == (duration / 4))
+            if ((remaining < duration * (1f / 3)) && _objectSpawner.SpeedLevel < 2)
             {
-                _objectSpawner.GetFaster(0.7f, 0.4f);
-                Debug.Log("faster 60%");
+                _objectSpawner.GetFaster(0.6f, 0.2f, 2);
+                _timer.color = Color.red;
+                Debug.Log("faster 2");
             }
-            Debug.Log($"{Mathf.RoundToInt(remaining)}");
+            //Debug.Log($"{Mathf.RoundToInt(remaining)}");
             yield return null;
         }
         _timer.text = "0:00.00";

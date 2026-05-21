@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
 
     private ObjectSpawner _objectSpawner;
     private CutIndicator _cutIndicator;
+    private float _indicatorSpeed = 0.1f;
     private CharacterController _characterController;
     private Shake _cameraShake;
 
@@ -49,7 +50,18 @@ public class PlayerController : MonoBehaviour
         _rotationTimer += Time.deltaTime;
         if (_rotationTimer >= _rotationInterval)
         {
-            _cutIndicator.Rotate();
+            switch(_objectSpawner.SpeedLevel)
+            {
+                case 1:
+                    _indicatorSpeed = 0.07f;
+                    break;
+                case 2:
+                    _indicatorSpeed = 0.05f;
+                    break;
+                default:
+                    break;
+            }
+            _cutIndicator.Rotate(_indicatorSpeed);
             _rotationTimer = 0f;
         }
     }
