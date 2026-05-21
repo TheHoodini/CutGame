@@ -1,12 +1,14 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System.Collections;
+using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class UIMgr : MonoBehaviour
 {
     // singleton
     public static UIMgr Instance;
+    private ObjectSpawner _objectSpawner;
 
     [Header("Screens")]
     [SerializeField] private GameObject _gameplayScreen;
@@ -21,6 +23,11 @@ public class UIMgr : MonoBehaviour
     [SerializeField] private Sprite _iconHorizontal;
     [SerializeField] private Sprite _iconDiagonal45;
     [SerializeField] private Sprite _iconDiagonal135;
+    [Header("Results UI")]
+    [SerializeField] private TextMeshProUGUI _finalScore;
+    [SerializeField] private TextMeshProUGUI _highscore;
+    [SerializeField] private TextMeshProUGUI _newRecordLabel;
+    [SerializeField] private Image _imageFill;
 
     private void Awake()
     {
@@ -31,6 +38,7 @@ public class UIMgr : MonoBehaviour
         }
         Instance = this;
 
+        _objectSpawner = FindFirstObjectByType<ObjectSpawner>();
         _gameplayScreen.SetActive(true);
         _resultsScreen.SetActive(false);
     }
@@ -43,6 +51,9 @@ public class UIMgr : MonoBehaviour
 
     public IEnumerator StartCountdown()
     {
+        _gameplayScreen.SetActive(true);
+        _resultsScreen.SetActive(false);
+
         _startCount.gameObject.SetActive(true);
         _startCount.text = "3";
         yield return new WaitForSeconds(1f);
@@ -53,6 +64,15 @@ public class UIMgr : MonoBehaviour
         _startCount.text = "GO!";
         yield return new WaitForSeconds(1f);
         _startCount.gameObject.SetActive(false);
+    }
+
+    public void SetTimer(float duration)
+    {
+        int minutes = Mathf.FloorToInt(duration / 60);
+        float remSeconds = duration % 60;
+        string formatted = string.Format("{0}:{1:00.00}", minutes, remSeconds);
+
+        _timer.text = formatted;
     }
 
     public IEnumerator StartTimer(float duration)
@@ -67,9 +87,24 @@ public class UIMgr : MonoBehaviour
             int centiseconds = totalCentiseconds % 100;
             _timer.text = $"{minutes}:{seconds:00}.{centiseconds:00}";
             elapsed += Time.deltaTime;
+
+            if ((remaining < duration * (2f / 3)) && _objectSpawner.SpeedLevel < 1) 
+            { 
+                _objectSpawner.GetFaster(0.9f, 0.5f, 1);
+                _timer.color = Color.yellow;
+                Debug.Log("faster 1");
+            }
+            if ((remaining < duration * (1f / 3)) && _objectSpawner.SpeedLevel < 2)
+            {
+                _objectSpawner.GetFaster(0.6f, 0.2f, 2);
+                _timer.color = Color.red;
+                Debug.Log("faster 2");
+            }
+            //Debug.Log($"{Mathf.RoundToInt(remaining)}");
             yield return null;
         }
         _timer.text = "0:00.00";
+        GameMgr.Instance.EndGame();
     }
 
     public void UpdateScore(int score)
@@ -105,9 +140,42 @@ public class UIMgr : MonoBehaviour
         _cutIcon.gameObject.SetActive(true);
     }
 
-    public void ShowResultsScreen(int finalScore)
+    public void ShowResultsScreen(int finalScore, int highscore, bool isHighscoreNew)
     {
         _gameplayScreen.SetActive(false);
+
+        _finalScore.text = $"SCORE: {finalScore}";
+        _highscore.text = $"HIGHSCORE: {highscore}";
+        _newRecordLabel.gameObject.SetActive(isHighscoreNew);
+
         _resultsScreen.SetActive(true);
+    }
+
+    public void AddImageFill()
+    {
+        float fillAmount = 0.7f;
+        _imageFill.fillAmount += fillAmount * Time.deltaTime;
+        _imageFill.fillAmount = Mathf.Clamp01(_imageFill.fillAmount);
+
+        if (_imageFill.fillAmount >= 1)
+        {
+            Application.Quit();
+
+            // If running in the editor
+            #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+            #endif
+        }
+    }
+
+    public void ResetImageFill()
+    {
+        _imageFill.fillAmount = 0 ;
+    }
+
+    public void OnAction(InputAction.CallbackContext context)
+    {
+        if (GameMgr.Instance.IsPlaying) return;
+        if (context.started) Debug.Log("uimgr input");
     }
 }

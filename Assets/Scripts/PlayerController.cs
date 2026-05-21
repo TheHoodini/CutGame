@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
 
     private ObjectSpawner _objectSpawner;
     private CutIndicator _cutIndicator;
+    private float _indicatorSpeed = 0.1f;
     private CharacterController _characterController;
     private Shake _cameraShake;
 
@@ -43,10 +44,24 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (_isHolding && !GameMgr.Instance.IsPlaying) UIMgr.Instance.AddImageFill();
+
+        if (!GameMgr.Instance.IsPlaying) return;
         _rotationTimer += Time.deltaTime;
         if (_rotationTimer >= _rotationInterval)
         {
-            _cutIndicator.Rotate();
+            switch(_objectSpawner.SpeedLevel)
+            {
+                case 1:
+                    _indicatorSpeed = 0.07f;
+                    break;
+                case 2:
+                    _indicatorSpeed = 0.05f;
+                    break;
+                default:
+                    break;
+            }
+            _cutIndicator.Rotate(_indicatorSpeed);
             _rotationTimer = 0f;
         }
     }
@@ -61,16 +76,23 @@ public class PlayerController : MonoBehaviour
 
     public void OnAction(InputAction.CallbackContext context)
     {
+        //if (!GameMgr.Instance.IsPlaying) return;
         // TAP
         if (context.interaction is TapInteraction)
         {
-            if (context.started)
+            if (GameMgr.Instance.IsPlaying) { // isPlaying -------
+                if (context.started)
                 _isTap = true;
 
-            if (context.performed && _isTap)
+                if (context.performed && _isTap)
+                {
+                    TryCut();
+                    _isTap = false;
+                }
+            }
+            else // is not Playing -------
             {
-                TryCut();
-                _isTap = false;
+                GameMgr.Instance.ResetScene();
             }
         }
 
@@ -88,6 +110,8 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("Hold Ended");
                 _isHolding = false;
                 _holdConfirmed = false;
+                UIMgr.Instance.ResetImageFill();
+
             }
             _holdDelayTimer = 0f;
             _rotationTimer = 0f;
