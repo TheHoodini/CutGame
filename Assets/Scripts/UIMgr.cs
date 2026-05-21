@@ -56,12 +56,16 @@ public class UIMgr : MonoBehaviour
 
         _startCount.gameObject.SetActive(true);
         _startCount.text = "3";
+        AudioMgr.Instance.PlaySFX("beep");
         yield return new WaitForSeconds(1f);
         _startCount.text = "2";
+        AudioMgr.Instance.PlaySFX("beep");
         yield return new WaitForSeconds(1f);
         _startCount.text = "1";
+        AudioMgr.Instance.PlaySFX("beep");
         yield return new WaitForSeconds(1f);
         _startCount.text = "GO!";
+        AudioMgr.Instance.PlaySFX("go");
         yield return new WaitForSeconds(1f);
         _startCount.gameObject.SetActive(false);
     }
@@ -92,12 +96,14 @@ public class UIMgr : MonoBehaviour
             { 
                 _objectSpawner.GetFaster(0.9f, 0.5f, 1);
                 _timer.color = Color.yellow;
+                AudioMgr.Instance.SpeedUpMusic(0.1f);
                 Debug.Log("faster 1");
             }
             if ((remaining < duration * (1f / 3)) && _objectSpawner.SpeedLevel < 2)
             {
                 _objectSpawner.GetFaster(0.6f, 0.2f, 2);
                 _timer.color = Color.red;
+                AudioMgr.Instance.SpeedUpMusic(0.3f);
                 Debug.Log("faster 2");
             }
             //Debug.Log($"{Mathf.RoundToInt(remaining)}");

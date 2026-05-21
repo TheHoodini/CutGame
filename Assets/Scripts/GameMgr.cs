@@ -35,9 +35,11 @@ public class GameMgr : MonoBehaviour
 
     private IEnumerator StartGame()
     {
+        AudioMgr.Instance.StopMainMusic();
         isPlaying = true;
         UIMgr.Instance.SetTimer(_gameDuration);
         yield return StartCoroutine(UIMgr.Instance.StartCountdown());
+        AudioMgr.Instance.PlayMainMusic();
         _objectSpawner.SpawnObject();
         StartCoroutine(UIMgr.Instance.StartTimer(_gameDuration));
     }

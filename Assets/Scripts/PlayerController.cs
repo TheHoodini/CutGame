@@ -132,8 +132,14 @@ public class PlayerController : MonoBehaviour
         // Make cut
         bool isAngleEqual = indicatorAngle == (int)_objectSpawner.CurrentObject.CutAngle;
         _objectSpawner.CurrentObject.CutAtAngle(indicatorAngle, isAngleEqual);
-        if (!isAngleEqual) _cameraShake.StartShake();
-        if (isAngleEqual) GameMgr.Instance.AddScore();
+        if (!isAngleEqual) {
+            _cameraShake.StartShake(); 
+            AudioMgr.Instance.PlaySFX("failedCut");
+        }
+        if (isAngleEqual) {
+            GameMgr.Instance.AddScore();
+            AudioMgr.Instance.PlaySFX("cut");
+        }
         _objectSpawner.OnItemCut();
     }
 
