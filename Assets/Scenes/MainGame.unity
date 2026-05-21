@@ -904,7 +904,7 @@ MonoBehaviour:
   - {fileID: 532891497259265741, guid: 6353a20e7c8c9e24387ef5be7d04d345, type: 3}
   - {fileID: 460943404447528697, guid: 6c467381eee5f464882c938f4ea9f803, type: 3}
   _spawnYOffset: 7
-  _respawnDelay: 1
+  _respawnDelay: 1.2
   _slideDownDuration: 0.7
 --- !u!4 &1032337220
 Transform:
@@ -1397,7 +1397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebc397ef4d06c42408c546bb9339cc2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameMgr
-  _gameDuration: 2
+  _gameDuration: 60
 --- !u!4 &2022190716
 Transform:
   m_ObjectHideFlags: 0

@@ -8,6 +8,7 @@ public class UIMgr : MonoBehaviour
 {
     // singleton
     public static UIMgr Instance;
+    private ObjectSpawner _objectSpawner;
 
     [Header("Screens")]
     [SerializeField] private GameObject _gameplayScreen;
@@ -37,6 +38,7 @@ public class UIMgr : MonoBehaviour
         }
         Instance = this;
 
+        _objectSpawner = FindFirstObjectByType<ObjectSpawner>();
         _gameplayScreen.SetActive(true);
         _resultsScreen.SetActive(false);
     }
@@ -85,6 +87,18 @@ public class UIMgr : MonoBehaviour
             int centiseconds = totalCentiseconds % 100;
             _timer.text = $"{minutes}:{seconds:00}.{centiseconds:00}";
             elapsed += Time.deltaTime;
+
+            if (Mathf.RoundToInt(remaining) == (duration/2)) 
+            { 
+                _objectSpawner.GetFaster(0.9f, 0.5f);
+                Debug.Log("faster 30%");
+            }
+            if (Mathf.RoundToInt(remaining) == (duration / 4))
+            {
+                _objectSpawner.GetFaster(0.7f, 0.4f);
+                Debug.Log("faster 60%");
+            }
+            Debug.Log($"{Mathf.RoundToInt(remaining)}");
             yield return null;
         }
         _timer.text = "0:00.00";

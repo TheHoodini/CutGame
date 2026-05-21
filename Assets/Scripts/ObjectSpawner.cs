@@ -10,24 +10,6 @@ public class ObjectSpawner : MonoBehaviour
     [SerializeField] private float _respawnDelay = 2f;
     [SerializeField] private float _slideDownDuration = 0.8f;
 
-    public float RespawnDelay
-    {
-        get => _respawnDelay; 
-        set => _respawnDelay = value;
-    }
-
-    public float SpawnYOffset
-    {
-        get => _spawnYOffset; 
-        set => _spawnYOffset = value;
-    }
-
-    public float SpawnDelay
-    {
-        get => _slideDownDuration; 
-        set => _slideDownDuration = value;
-    }
-
     private CuttableObject _currentObject;
     private bool _isRespawning = false;
     private bool _isSliding = false;
@@ -115,9 +97,10 @@ public class ObjectSpawner : MonoBehaviour
         SpawnObject();
     }
 
-    public void GetFaster()
+    public void GetFaster(float respawn, float slide)
     {
-
+        _respawnDelay = respawn;
+        _slideDownDuration = slide;
     }
 
 #if UNITY_EDITOR
